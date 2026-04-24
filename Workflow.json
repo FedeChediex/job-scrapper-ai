@@ -1,0 +1,325 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ca42ac29-2318-4c1f-9dac-df1bb77502c6",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "f8496a0e-2760-44e6-897a-c51e3068a990",
+      "name": "Wait",
+      "webhookId": "468b443d-8a0e-4f86-a0f3-1d972769c8e9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  let raw = item.json.raw;\n  \n  // Limpiar backticks\n  raw = raw.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  \n  const parsed = JSON.parse(raw);\n  if (parsed.puntaje_para_mi > 10) parsed.puntaje_para_mi = parsed.puntaje_para_mi / 10;\n  items.push({ json: parsed });\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "590e3950-d3c6-4b6c-81ab-09aaf54efacf",
+      "name": "Limpiar JSON"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_URL",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Titulo  ": "={{ $json.titulo }}",
+            "Modalidad": "={{ $json.modalidad }}",
+            "Nivel": "={{ $json.nivel }}",
+            "Empresa": "={{ $json.empresa }}",
+            "Puntaje": "={{ $json.puntaje_para_mi }}",
+            "Razon": "={{ $json.razon }}",
+            "Link": "={{ $json.link }}"
+          },
+          "matchingColumns": [
+            "Link"
+          ],
+          "schema": [
+            {
+              "id": "Titulo  ",
+              "displayName": "Titulo  ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Empresa",
+              "displayName": "Empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Modalidad",
+              "displayName": "Modalidad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nivel",
+              "displayName": "Nivel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Puntaje",
+              "displayName": "Puntaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Razon",
+              "displayName": "Razon",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        0
+      ],
+      "id": "18f9220d-d8cc-4efa-bc90-458aaa9bed6b",
+      "name": "Agregar Trabajos a exel",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kepartHskXvnI0po",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2b4ac5c-cd68-433c-a62d-aa98f1f76739",
+              "name": "searchQuery",
+              "value": "trainee node.js Buenos Aires",
+              "type": "string"
+            },
+            {
+              "id": "382747db-2b8a-4baf-b031-ebf8210a14a8",
+              "name": "location",
+              "value": "Argentina",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f16b9ef4-425a-4546-adb4-47f9f8468d1c",
+      "name": "Definir parametros busqueda"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token=YOUR_APIFY_TOKEN",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords={{ encodeURIComponent($json.searchQuery) }}&location={{ encodeURIComponent($json.location) }}\"\n  ],\n  \"scrapeCompany\": false,\n  \"count\": 10\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        384,
+        0
+      ],
+      "id": "5b53205d-36aa-4b67-8d5d-964474880469",
+      "name": "Peticion Scrapping"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actor-runs/YOUR_RUN_ID/dataset/items?token=YOUR_APIFY_TOKEN",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        752,
+        0
+      ],
+      "id": "dcf95fc7-ad51-4524-9020-9fe61b55d309",
+      "name": "Obtencion resultados"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const description = item.json.descriptionText || '';\n  const title = item.json.title || '';\n  const company = item.json.companyName || '';\n  const link = item.json.link || '';\n\n  const body = {\n    contents: [{\n      parts: [{\n        text: `Analizá esta oferta para Federico (20 años, UTN Ing. Sistemas, stack: Node.js JavaScript React SQL Git n8n). Respondé SOLO en JSON sin backticks: {\"titulo\":\"\",\"empresa\":\"\",\"requisitos\":[],\"modalidad\":\"\",\"nivel\":\"\",\"puntaje_para_mi\":0,\"razon\":\"\",\"link\":\"\"}. Oferta - Título: ${title} Empresa: ${company} Link: ${link} Descripción: ${description}`\n      }]\n    }]\n  };\n\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=YOUR_GEMINI_API_KEY',\n    headers: { 'Content-Type': 'application/json' },\n    body: body,\n    json: true\n  });\n\n  const text = response.candidates[0].content.parts[0].text;\n  \n  items.push({ json: { raw: text, title, company, link } });\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "e15f905c-e61c-410e-bc40-b4328d0045f5",
+      "name": "Analizar trabajos con IA"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Definir parametros busqueda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Obtencion resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiar JSON": {
+      "main": [
+        [
+          {
+            "node": "Agregar Trabajos a exel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definir parametros busqueda": {
+      "main": [
+        [
+          {
+            "node": "Peticion Scrapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Peticion Scrapping": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtencion resultados": {
+      "main": [
+        [
+          {
+            "node": "Analizar trabajos con IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar trabajos con IA": {
+      "main": [
+        [
+          {
+            "node": "Limpiar JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0369c30f-fe91-434e-bba9-cab12c61084b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5d31dcce77b0f62f1b3a5997f418b944560b9b01a70a24c48ca5629c58119ccf"
+  },
+  "id": "vb1UygS0v0hc8JVH",
+  "tags": []
+}
