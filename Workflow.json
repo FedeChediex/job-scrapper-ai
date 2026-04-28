@@ -2,27 +2,16 @@
   "name": "My workflow",
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "ca42ac29-2318-4c1f-9dac-df1bb77502c6",
-      "name": "When clicking ‘Execute workflow’"
-    },
-    {
       "parameters": {
         "amount": 15
       },
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        560,
-        0
+        1776,
+        432
       ],
-      "id": "f8496a0e-2760-44e6-897a-c51e3068a990",
+      "id": "fe0bc913-287f-48df-86f5-c7c0c8b6fec8",
       "name": "Wait",
       "webhookId": "468b443d-8a0e-4f86-a0f3-1d972769c8e9"
     },
@@ -33,10 +22,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1168,
-        0
+        3344,
+        352
       ],
-      "id": "590e3950-d3c6-4b6c-81ab-09aaf54efacf",
+      "id": "d267ab29-3b45-4d48-b989-781eafe76208",
       "name": "Limpiar JSON"
     },
     {
@@ -44,15 +33,13 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "YOUR_GOOGLE_SHEET_URL",
+          "value": "={{$env.GOOGLE_SHEET_URL}}",
           "mode": "url"
         },
         "sheetName": {
           "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Hoja 1",
-          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+          "value": "={{$env.GOOGLE_SHEET_NAME}}",
+          "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -142,14 +129,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1376,
-        0
+        3568,
+        352
       ],
-      "id": "18f9220d-d8cc-4efa-bc90-458aaa9bed6b",
+      "id": "14258168-42db-423b-83ba-48d0daed362d",
       "name": "Agregar Trabajos a exel",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "kepartHskXvnI0po",
+          "id": "tBaGFLoZJR5iw159",
           "name": "Google Sheets account"
         }
       }
@@ -159,15 +146,15 @@
         "assignments": {
           "assignments": [
             {
-              "id": "a2b4ac5c-cd68-433c-a62d-aa98f1f76739",
+              "id": "50095818-7999-48e4-a33f-14ea93ab6d64",
               "name": "searchQuery",
-              "value": "trainee node.js Buenos Aires",
-              "type": "string"
+              "value": "={{ $env.SEARCH_QUERIES.split(',') }}",
+              "type": "array"
             },
             {
               "id": "382747db-2b8a-4baf-b031-ebf8210a14a8",
               "name": "location",
-              "value": "Argentina",
+              "value": "=Argentina",
               "type": "string"
             }
           ]
@@ -177,16 +164,16 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        208,
-        0
+        896,
+        432
       ],
-      "id": "f16b9ef4-425a-4546-adb4-47f9f8468d1c",
+      "id": "40a50bb1-5ef6-432a-b5b5-9699a632df12",
       "name": "Definir parametros busqueda"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token=YOUR_APIFY_TOKEN",
+        "url": "=https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token={{$env.APIFY_TOKEN}}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords={{ encodeURIComponent($json.searchQuery) }}&location={{ encodeURIComponent($json.location) }}\"\n  ],\n  \"scrapeCompany\": false,\n  \"count\": 10\n}",
@@ -195,53 +182,200 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        384,
-        0
+        1328,
+        432
       ],
-      "id": "5b53205d-36aa-4b67-8d5d-964474880469",
+      "id": "40337307-dd1b-4235-b2b4-0e9b158a2e6f",
       "name": "Peticion Scrapping"
     },
     {
       "parameters": {
-        "url": "https://api.apify.com/v2/actor-runs/YOUR_RUN_ID/dataset/items?token=YOUR_APIFY_TOKEN",
+        "url": "=https://api.apify.com/v2/actor-runs/{{ $json.runId }}/dataset/items?token={{$env.APIFY_TOKEN}}&limit=10",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        752,
-        0
+        2000,
+        432
       ],
-      "id": "dcf95fc7-ad51-4524-9020-9fe61b55d309",
+      "id": "9b48a6ee-3c29-46aa-a6ae-17dfbe54c313",
       "name": "Obtencion resultados"
     },
     {
       "parameters": {
-        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const description = item.json.descriptionText || '';\n  const title = item.json.title || '';\n  const company = item.json.companyName || '';\n  const link = item.json.link || '';\n\n  const body = {\n    contents: [{\n      parts: [{\n        text: `Analizá esta oferta para Federico (20 años, UTN Ing. Sistemas, stack: Node.js JavaScript React SQL Git n8n). Respondé SOLO en JSON sin backticks: {\"titulo\":\"\",\"empresa\":\"\",\"requisitos\":[],\"modalidad\":\"\",\"nivel\":\"\",\"puntaje_para_mi\":0,\"razon\":\"\",\"link\":\"\"}. Oferta - Título: ${title} Empresa: ${company} Link: ${link} Descripción: ${description}`\n      }]\n    }]\n  };\n\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=YOUR_GEMINI_API_KEY',\n    headers: { 'Content-Type': 'application/json' },\n    body: body,\n    json: true\n  });\n\n  const text = response.candidates[0].content.parts[0].text;\n  \n  items.push({ json: { raw: text, title, company, link } });\n}\n\nreturn items;"
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const description = item.json.descriptionText || '';\n  const title = item.json.title || '';\n  const company = item.json.companyName || '';\n  const link = item.json.link || '';\n\n  const body = {\n    contents: [{\n      parts: [{\n        text: `Analizá esta oferta para Federico (20 años, UTN Ing. Sistemas, stack: Node.js JavaScript React SQL Git n8n). Respondé SOLO en JSON sin backticks: {\"titulo\":\"\",\"empresa\":\"\",\"requisitos\":[],\"modalidad\":\"\",\"nivel\":\"\",\"puntaje_para_mi\":0,\"razon\":\"\",\"link\":\"\"}. Oferta - Título: ${title} Empresa: ${company} Link: ${link} Descripción: ${description}`\n      }]\n    }]\n  };\n\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url:`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${$env.GEMINI_API_KEY}`,\n    headers: { 'Content-Type': 'application/json' },\n    body: body,\n    json: true\n  });\n\n  const text = response.candidates[0].content.parts[0].text;\n  \n  items.push({ json: { raw: text, title, company, link } });\n  await new Promise(resolve => setTimeout(resolve, 4000));\n}\n\nreturn items;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        0
+        3344,
+        544
       ],
-      "id": "e15f905c-e61c-410e-bc40-b4328d0045f5",
+      "id": "61d23fb7-98f5-4d30-9edb-a74de9f2762d",
       "name": "Analizar trabajos con IA"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "searchQuery",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "location",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        432
+      ],
+      "id": "4e091409-c41e-4ec8-8c3c-fe977a46c396",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6e0b6d5c-368c-4550-ae9f-381772df46a6",
+              "name": "runId",
+              "value": "={{ $json.data.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1552,
+        432
+      ],
+      "id": "2dcb8899-ce1e-4cb6-9a4c-cdf656cacdcf",
+      "name": "RunID"
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('Total items:', $input.all().length);\nconsole.log('Primer item tipo:', typeof $input.all()[0].json);\nconsole.log('Primer item:', JSON.stringify($input.all()[0].json).slice(0, 200));\n\nconst allJobs = $input.all().flatMap(item => \n  Array.isArray(item.json) ? item.json : [item.json]\n);\n\nconsole.log('Total jobs aplanados:', allJobs.length);\nconst seen = new Set();\nconst items = [];\n\nfor (const job of allJobs) {\n  if (job.id && !seen.has(job.id)) {\n    seen.add(job.id);\n    items.push({ json: job });\n  }\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        432
+      ],
+      "id": "499a4a30-8ec7-4c7d-95a5-a26c7389f803",
+      "name": "Deduplicar busqueda"
+    },
+    {
+      "parameters": {
+        "jsCode": "const savedLinks = new Set(\n  $('ObtenerDatosSheet').all()\n    .filter(item => item.json.Link)\n    .map(item => item.json.Link)\n);\n\nconst newJobs = $('Deduplicar busqueda').all().filter(item => {\n  return !savedLinks.has(item.json.link);\n});\n\nreturn newJobs;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        544
+      ],
+      "id": "72cbd9ce-4f37-47cb-82af-2fa15ef3b2a2",
+      "name": "Filtrar nuevos trabajos",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_URL }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_NAME }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2224,
+        624
+      ],
+      "id": "65e6d92d-7f48-4e5a-9a96-184b52d61149",
+      "name": "ObtenerDatosSheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tBaGFLoZJR5iw159",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2448,
+        544
+      ],
+      "id": "f90943ff-6c7f-4129-8096-6dd9ba5e758a",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3120,
+        544
+      ],
+      "id": "0b2ea62c-ae1d-4241-bbc9-e6bc3c1da98b",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 65
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3568,
+        624
+      ],
+      "id": "2010e0fd-a270-4f40-9efe-6dbb548f6728",
+      "name": "Wait1",
+      "webhookId": "cca351fe-4034-40f3-92b6-0bfc1f59fab1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const TITULOS_EXCLUIDOS = $env.EXCLUDED_TITLES.split(',');\n\n\nconst items = $input.all().filter(item => {\n  const titulo = (item.json.title || '').toLowerCase();\n  return !TITULOS_EXCLUIDOS.some(excluido => titulo.includes(excluido));\n});\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        544
+      ],
+      "id": "4ca11fc7-fa04-432e-90b6-4ef7fc31b75e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        656,
+        544
+      ],
+      "id": "9e313515-0903-4629-92cc-90011d963341",
+      "name": "When clicking ‘Execute workflow’"
     }
   ],
   "pinData": {},
   "connections": {
-    "When clicking ‘Execute workflow’": {
-      "main": [
-        [
-          {
-            "node": "Definir parametros busqueda",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Wait": {
       "main": [
         [
@@ -268,7 +402,7 @@
       "main": [
         [
           {
-            "node": "Peticion Scrapping",
+            "node": "Split Out",
             "type": "main",
             "index": 0
           }
@@ -279,7 +413,7 @@
       "main": [
         [
           {
-            "node": "Wait",
+            "node": "RunID",
             "type": "main",
             "index": 0
           }
@@ -290,7 +424,7 @@
       "main": [
         [
           {
-            "node": "Analizar trabajos con IA",
+            "node": "Deduplicar busqueda",
             "type": "main",
             "index": 0
           }
@@ -301,25 +435,151 @@
       "main": [
         [
           {
-            "node": "Limpiar JSON",
+            "node": "Wait1",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Peticion Scrapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RunID": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicar busqueda": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar nuevos trabajos": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ObtenerDatosSheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Filtrar nuevos trabajos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limpiar JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analizar trabajos con IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Definir parametros busqueda",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ObtenerDatosSheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Trabajos a exel": {
+      "main": [
+        []
       ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
+    "binaryMode": "separate"
   },
-  "versionId": "0369c30f-fe91-434e-bba9-cab12c61084b",
+  "versionId": "dbf4a3a6-fec3-4181-9d25-c462f9948778",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "5d31dcce77b0f62f1b3a5997f418b944560b9b01a70a24c48ca5629c58119ccf"
+    "instanceId": "f496185eeae278bcb75418a3f2a19183079bf5cfd4d3d4efe43851707024f39e"
   },
-  "id": "vb1UygS0v0hc8JVH",
+  "id": "ws7CqM5yzlY9TbJP",
   "tags": []
 }
